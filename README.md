@@ -13,11 +13,11 @@ Our test case is **Saint-Malo, France**, with data from the French hydrographic 
 
 <p align="center"><em>The watch on 3 Oct 2026 after the upload. It shows low water at 19:01 (398 cm) and high water at 0:39 (943 cm). The official SHOM tide table gives 19:00 (4.00 m) and 00:40 (9.37 m).</em></p>
 
-| Saint-Malo | Mean error on high/low water time | Max error |
+| Saint-Malo (vs gauge measurements, 2025) | Mean error on high/low water time | Max error |
 |---|---|---|
-| Casio's stock data (4 constituents) | ~30 min | 1 h 40 |
-| Our constants (60 constituents, SHOM gauge data) | ~3 min | 15 min |
-| Version aligned on the official SHOM tide table, checked on the watch | ≤ 1 min | — |
+| Casio's stock data (4 constituents) | 29 min | 2 h 05 |
+| Our constants (60 constituents, SHOM gauge data) | 5 min | 24 min |
+| Version aligned on the official SHOM table: watch vs table, 3 Oct 2026 | ≤ 1 min | — |
 
 ## Why Casio's stock data is not usable (at least in Saint-Malo)
 

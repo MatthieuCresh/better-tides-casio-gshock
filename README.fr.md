@@ -11,11 +11,11 @@ Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée 
 
 <p align="center"><em>La montre le 3 octobre 2026 après l'envoi. Elle affiche une basse mer à 19:01 (398 cm) et une pleine mer à 0:39 (943 cm). L'annuaire SHOM donne 19:00 (4,00 m) et 00:40 (9,37 m). La version calée sur les mesures du marégraphe, au lieu de l'annuaire, donnait 19:13.</em></p>
 
-| Saint-Malo | Écart moyen sur l'heure des PM/BM | Écart max |
+| Saint-Malo (face aux mesures du marégraphe, 2025) | Écart moyen sur l'heure des PM/BM | Écart max |
 |---|---|---|
-| Données Casio d'origine (4 ondes) | ~30 min | 1 h 40 |
-| Nos constantes (60 ondes, mesures SHOM) | ~3 min | 15 min |
-| Version alignée sur l'annuaire SHOM, vérifiée sur la montre | ≤ 1 min | — |
+| Données Casio d'origine (4 ondes) | 29 min | 2 h 05 |
+| Nos constantes (60 ondes, mesures SHOM) | 5 min | 24 min |
+| Version alignée sur l'annuaire SHOM : montre face à l'annuaire, 3 octobre 2026 | ≤ 1 min | — |
 
 ## Pourquoi les données Casio d'origine ne sont pas exploitables (au moins à Saint-Malo)
 
