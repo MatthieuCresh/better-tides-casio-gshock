@@ -1,67 +1,124 @@
-# Marées SHOM dans une G-Shock GBX-100
+# Better tides on your Casio G-Shock GBX-100
 
-Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures du SHOM**, à la place des données approximatives fournies par l'appli CASIO WATCHES. La montre affiche ensuite les marées de Saint-Malo à la minute près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil).
+*Accurate, offline tide predictions on the GBX-100 (module 3482) from official tide-gauge data, uploaded over Bluetooth LE. — [Version française](README.fr.md)*
+
+The GBX-100 has a nice tide graph, but for many ports the data that the **CASIO WATCHES** app sends is crude, and high/low water times can be off by more than an hour. This project computes **proper harmonic tide constants** from official measurements and uploads them to the watch in Casio's own format. The watch then shows tides accurate to about a minute, **fully offline**, on its stock screen (tide graph, high/low water, moon, sunrise/sunset). The firmware is not modified.
+
+Our test case is **Saint-Malo, France**, with data from the French hydrographic office **SHOM**. The method works with any tide gauge or published constituents (see [other data sources](#other-data-sources-noaa-ukho-and-more)).
 
 <p align="center">
-  <img src="docs/img/montre_maree.jpg" width="340" alt="GBX-100 en mode marée affichant ST-MALO SHOM : pleine mer 0:39 943 cm, basse mer 19:01 398 cm">
-  <img src="docs/img/montre_heure.jpg" width="340" alt="GBX-100 sur l'écran principal avec le graphe de marée ST-MALO SHOM">
+  <img src="docs/img/montre_maree.jpg" width="340" alt="Casio G-Shock GBX-100 tide mode showing ST-MALO SHOM: high water 0:39 943 cm, low water 19:01 398 cm">
+  <img src="docs/img/montre_heure.jpg" width="340" alt="Casio G-Shock GBX-100 main screen with the ST-MALO SHOM tide graph">
 </p>
 
-<p align="center"><em>La montre le 3 octobre 2026 après l'envoi. Elle affiche une basse mer à 19:01 (398 cm) et une pleine mer à 0:39 (943 cm). L'annuaire SHOM donne 19:00 (4,00 m) et 00:40 (9,37 m). La version calée sur les mesures du marégraphe, au lieu de l'annuaire, donnait 19:13.</em></p>
+<p align="center"><em>The watch on 3 Oct 2026 after the upload. It shows low water at 19:01 (398 cm) and high water at 0:39 (943 cm). The official SHOM tide table gives 19:00 (4.00 m) and 00:40 (9.37 m).</em></p>
 
-> *English summary: tools to compute 60-constituent harmonic tide constants from French SHOM tide-gauge data and upload them to a Casio G-Shock GBX-100 over Bluetooth LE, replacing Casio's coarse 4-constituent port data. Includes a description of the watch's tide-data BLE protocol.*
-
-| | Écart moyen sur l'heure des PM/BM | Écart max |
+| Saint-Malo | Mean error on high/low water time | Max error |
 |---|---|---|
-| Données Casio d'origine (Saint-Malo, 4 ondes) | ~30 min | 1 h 40 |
-| Nos constantes (60 ondes, mesures SHOM) | ~3 min | 15 min |
-| Version alignée sur l'annuaire SHOM, test sur la montre | ≤ 1 min | — |
+| Casio's stock data (4 constituents) | ~30 min | 1 h 40 |
+| Our constants (60 constituents, SHOM gauge data) | ~3 min | 15 min |
+| Version aligned on the official SHOM tide table, checked on the watch | ≤ 1 min | — |
 
-*Écarts mesurés sur 2025, par rapport à une prédiction complète, et vérifiés sur la montre (3 octobre 2026 : BM 19:01 et PM 0:39, contre 19:00 et 00:40 dans l'annuaire SHOM).*
+## The problem
 
-## Pourquoi
+For Saint-Malo, the Casio app only sends **4 harmonic constituents** (M2, S2, K1, O1, plus two tiny shallow-water terms). It leaves out N2 (0.71 m), K2 (0.41 m), M4, MS4 and others, which matters a lot at one of Europe's largest tidal ranges.
 
-Pour Saint-Malo, l'appli Casio n'envoie que **4 ondes harmoniques** (M2, S2, K1, O1, plus deux petites ondes de petits fonds). Il manque notamment N2 (0,71 m), K2 (0,41 m), M4 et MS4, ce qui est énorme pour l'un des plus grands marnages d'Europe. Or le firmware de la montre **sait calculer une marée à 60 ondes** : l'appli s'en sert pour d'autres ports (Japon, États-Unis, une partie de la France). Il suffit de lui fournir un jeu de 60 constantes correct.
+The watch firmware, however, **can compute tides from 60 constituents**: the app already uses that format for other ports (Japan, USA, part of France). All it needs is a correct set of 60 constants.
 
-## Comment ça marche
+## Experimental approach
 
-1. **Mesures :** hauteurs d'eau horaires du marégraphe SHOM de Saint-Malo (réseau REFMAR, 2019-2025).
-2. **Analyse harmonique** avec [`utide`](https://github.com/wesleybowman/UTide), restreinte aux 60 ondes que la montre sait calculer.
-3. **Conversion** au format binaire attendu par la montre : un bloc de 1009 octets (voir [docs/PROTOCOLE.md](docs/PROTOCOLE.md)).
-4. **Envoi Bluetooth** depuis un Mac (ou un PC) avec [`bleak`](https://github.com/hbldh/bleak). Le script rejoue la séquence de l'appli officielle.
+We worked through successive hypotheses, each checked against an independent source before moving on. We only touched the watch once the format was confirmed, and we started with a read-only connection.
 
-Option : un décalage de 12 minutes aligne les heures sur l'**annuaire officiel du SHOM**, qui est en avance de quelques minutes sur les mesures du marégraphe (voir plus bas).
+**1. Static analysis of the app.** The CASIO WATCHES APK ships its tide-port databases in clear: about 3,300 ports (844 with 4 constituents, 2,492 with 60), with their harmonic constants. So the watch receives constants and does the computation itself. The order of the 60 columns is undocumented; we recovered it by recognising the main constituents of known ports.
 
-## Utilisation
+**2. Quantify before touching anything.** We downloaded 7 years of hourly SHOM tide-gauge data for Saint-Malo and ran a harmonic analysis on 2019–2024. We then simulated both Casio's 4-constituent model and our 60-constituent model on 2025, held-out data. The expected gain was known before the first byte was sent.
 
-Prérequis : Python 3.10 ou plus et un ordinateur avec Bluetooth LE. Testé sur macOS 26 (Apple Silicon).
+**3. Follow the data path (decompilation for interoperability).** We decompiled the Flutter/Dart part with `blutter` and the native Android part with `jadx`. The Java layer builds a 1,009-byte binary block with 60 amplitudes and phases, sends it through a bulk Bluetooth transfer, then writes a small settings record.
+
+**4. Ground truth from a Bluetooth capture.** We captured, with Apple's PacketLogger, the official iOS app sending a 60-constituent French port (La Rochelle). Our generator reproduces the captured block **byte for byte**, which confirmed units, conventions and the missing values (DST rule).
+
+**5. Stepwise tests on the watch:** first a read-only connection from a Mac, then the upload, then a visual check on the watch against our predictions and the official tide table.
+
+**6. Debug failures.** When the watch started rejecting transfers ("busy"), a second capture showed the full handshake that the app performs before each transfer. The script now replays it.
+
+### Hypotheses confirmed or refuted
+
+| Hypothesis | Result | Evidence |
+|---|---|---|
+| The watch computes tides itself from parameters | ✅ Confirmed | Harmonic constants in the APK; offline display |
+| The inaccuracy comes from Casio's model, not the watch | ✅ Confirmed | Saint-Malo uses only 4 constituents; simulation shows ~30 min mean error |
+| The firmware supports 60 constituents | ✅ Confirmed | 60-constituent ports in the app; our block displays correctly |
+| The app only sends a port ID (database inside the watch) | ❌ Refuted | Java code + capture: the full constants block is transmitted |
+| Units in cm and degrees; phases referenced to UTC; longitude positive West | ✅ Confirmed | Captured block reproduced byte for byte; correct times on the watch |
+| 4-constituent ports use UTC+1 phases | ✅ Confirmed | Constant ~30° (one hour of M2) offset against our analysis and between neighbouring ports in both lists |
+| A third-party client can write to the watch without pairing | ✅ Confirmed | Successful connection and upload from a Mac |
+| The watch reloads data on every upload | ❌ Refuted | It only reloads when the port ID changes |
+| The watch accepts a transfer at any time | ❌ Refuted | It refuses while showing tide mode, and without the app's handshake |
+| The official tide table exactly matches the measurements | ❌ Refuted (at Saint-Malo) | The table is ~12 min earlier than our model; the measured tide lies in between |
+
+The full protocol is documented in [docs/PROTOCOL.md](docs/PROTOCOL.md) (French version: [docs/PROTOCOLE.md](docs/PROTOCOLE.md)).
+
+## Other watches than the GBX-100?
+
+Tested **only on a GBX-100 (module 3482)**. Some leads for other models, **untested**:
+- In the app code, module **3586** goes through the same "multi-slot" tide path as the 3482. It likely accepts the same format, but we have not verified it.
+- The app also contains mapping tables for other tide-graph watches (modules 3452 and 5623, from the Rangeman and Frogman families). They seem to use different formats and exchanges. The same approach (APK analysis, then capture, then replay) should apply, but the code will need adapting.
+- In version 4.6.0, the native Android side only enables tide transfers for the GBX-100.
+
+If you try another model, start with `scripts/lecture_montre.py` (read-only) and capture the official app over Bluetooth to compare.
+
+## Other data sources (NOAA, UKHO and more)
+
+We used **SHOM** because the watch is used in Saint-Malo. The method is generic: any series of water levels covering at least a year, or published harmonic constituents, will do. Depending on where you sail:
+
+| Region | Provider | What you get |
+|---|---|---|
+| France (incl. overseas) | **SHOM**, data.shom.fr (REFMAR) | Tide-gauge measurements, open licence |
+| USA | **NOAA CO-OPS**, tidesandcurrents.noaa.gov | Measurements, plus **published harmonic constituents** (select "GMT" phases), so no analysis is needed |
+| United Kingdom | **National Tidal and Sea Level Facility / BODC** | UK tide-gauge network data |
+| Canada | **Fisheries and Oceans Canada / CHS** | Measurements, predictions |
+| Germany, Netherlands, Belgium | **BSH**, **Rijkswaterstaat**, **Afdeling Kust** | National measurements and predictions |
+| Spain, Portugal | **Puertos del Estado**, **Instituto Hidrográfico** | Port measurements |
+| Australia, New Zealand | **Bureau of Meteorology**, **LINZ** | Measurements, predictions |
+| Worldwide | **UHSLC**, **GESLA** | Tide-gauge series from around the world |
+| Anywhere, even without a gauge | Global models **FES2022** (AVISO), **TPXO** | Constituents at any point; less accurate near coasts and in estuaries |
+
+Whatever the source, check that:
+- phases are **Greenwich/UTC-referenced** (not local time) and amplitudes are in **cm**;
+- constituent names are mapped to Casio's order (done in `constantes_casio.py`);
+- the height datum (local chart datum or mean sea level) suits you, since it sets the displayed heights;
+- if you want to match your official local tide table rather than the measurements, you calibrate a time offset as in `aligne_shom.py`.
+
+## Usage
+
+Requirements: Python 3.10+ and a computer with Bluetooth LE. Tested on macOS 26 (Apple Silicon). Script comments and messages are in French.
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Toutes les commandes se lancent depuis la racine du dépôt.
+Run all commands from the repository root.
 
-### Envoyer les marées de Saint-Malo (constantes déjà fournies)
+### Upload Saint-Malo tides (constants included)
 
-1. Coupez le Bluetooth du téléphone appairé à la montre, sinon il prendra la connexion.
-2. Mettez la montre sur l'**écran de l'heure**. En mode marée, elle refuse le transfert.
-3. Lancez la commande, puis appuyez sur le bouton de connexion de la montre :
+1. Turn off Bluetooth on the phone paired with the watch, otherwise it will grab the connection.
+2. Put the watch on the **time screen**. In tide mode it refuses the transfer.
+3. Run the command, then press the watch's connect button:
 
 ```bash
 python scripts/envoi_maree.py data/saint_malo_3482_shom.bin
 ```
 
-La montre doit ensuite afficher « ST-MALO SHOM » en mode marée. Utilisez `data/saint_malo_3482.bin` pour la version calée sur les mesures plutôt que sur l'annuaire.
+The watch should then show "ST-MALO SHOM" in tide mode. Use `data/saint_malo_3482.bin` for the version fitted on measurements rather than on the official table. The script also sets the watch time from the computer.
 
-Pour lire seulement les réglages de marée, sans rien écrire :
+To read the tide settings only, without writing anything:
 
 ```bash
 python scripts/lecture_montre.py
 ```
 
-### Recalculer les constantes, ou les calculer pour un autre port
+### Recompute the constants, or compute them for another port
 
 ```bash
 python scripts/telecharger_refmar.py 410 2019 2025 data/saint_malo_horaire.csv
@@ -72,32 +129,27 @@ python scripts/aligne_shom.py
 python scripts/previsions.py 2026-10-03
 ```
 
-Les étapes :
-- `telecharger_refmar.py` télécharge les mesures (410 = Saint-Malo ; la liste des marégraphes est sur [data.shom.fr](https://data.shom.fr)).
-- `analyse.py` fait l'analyse harmonique et la compare au modèle Casio. Il produit `data/saint_malo_60.json`.
-- `constantes_casio.py` produit les constantes au format Casio.
-- `gen_blob.py` produit le bloc de 1009 octets.
-- `aligne_shom.py` est optionnel : il applique le décalage vers l'annuaire et vérifie le résultat.
-- `previsions.py` affiche les PM/BM prévues pour comparer avec la montre.
+What each step does:
+- `telecharger_refmar.py` downloads SHOM gauge data (410 = Saint-Malo). For other providers, produce a CSV with columns `t` (UTC) and `h` (metres).
+- `analyse.py` runs the harmonic analysis and compares it with Casio's model.
+- `constantes_casio.py` writes the constants in Casio's format. Name, latitude and longitude can be passed as arguments.
+- `gen_blob.py` builds the 1,009-byte block. The displayed name is at most 18 characters.
+- `aligne_shom.py` is optional: it applies the time offset towards the official table and checks the result.
+- `previsions.py` prints predicted high/low waters, to compare with the watch.
 
-Bonus : `parse_pklg.py` décode une capture Bluetooth PacketLogger (macOS/iOS) en liste d'opérations GATT.
+Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into a list of GATT operations.
 
-Pour un autre port, il faut adapter l'identifiant du marégraphe, les coordonnées, le nom affiché (18 caractères au maximum), ainsi que les marées de l'annuaire utilisées dans `aligne_shom.py`. `analyse.py` contient aussi les constantes Casio de Saint-Malo, qui ne servent qu'à la comparaison.
+## Limitations and caveats
 
-## Mesures ou annuaire ?
+- **Personal project, not affiliated with Casio or SHOM.** Use at your own risk. The worst case we hit was reversible: selecting a port again in the CASIO WATCHES app restores the stock data.
+- **The Casio app may overwrite the data.** On each reconnection it re-sends its own data for the stored port ID. The script uses an ID the app does not know (9999 or 9998) to avoid this. Persistence over several days is still to be confirmed.
+- This is **not a navigation instrument**. Predictions do not include weather effects (storm surges of 10–20 cm are common). Always refer to official publications.
 
-Sur 2025, données qui n'ont pas servi à l'ajustement, notre modèle colle aux mesures : erreur quadratique minimale à 0 minute de décalage, PM +5 min et BM +1 min en moyenne. L'annuaire SHOM est environ 12 minutes plus tôt que notre modèle. Le 3 octobre 2026, le marégraphe a mesuré BM 06:37 et PM 12:06, quand l'annuaire donnait 06:30 et 12:00 et notre modèle 06:42 et 12:08 : la réalité se situe entre les deux. `aligne_shom.py` permet de choisir l'annuaire comme référence.
+## Sources, licences and credits
 
-## Limites et précautions
+- **Tide-gauge data:** © SHOM, REFMAR network, [data.shom.fr](https://data.shom.fr), [Etalab Open Licence 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/). The raw data is not included; `telecharger_refmar.py` downloads it. The constants in `data/` are derived from it.
+- **Protocol:** determined by analysing the CASIO WATCHES 4.6.0 app, solely for interoperability (EU Directive 2009/24/EC, Art. 6), and confirmed with Bluetooth captures. This repository contains no Casio code or files; only Casio's 6 Saint-Malo constants are quoted in `analyse.py`, for comparison. The [Gadgetbridge](https://gadgetbridge.org) project's reverse engineering of Casio watches was the starting point.
+- **Tools:** [utide](https://github.com/wesleybowman/UTide), [bleak](https://github.com/hbldh/bleak), [blutter](https://github.com/worawit/blutter), [jadx](https://github.com/skylot/jadx), PacketLogger (Apple).
+- **Code:** MIT licence (see [LICENSE](LICENSE)).
 
-- **Projet personnel, non affilié à Casio ni au SHOM.** À utiliser à vos risques. Le pire cas rencontré est réversible : resélectionner un port dans l'appli CASIO WATCHES remet les données d'origine.
-- **L'appli Casio peut écraser les données.** À chaque reconnexion, elle renvoie ses propres données pour le numéro de port enregistré. Le script utilise un numéro inconnu de l'appli (9999 ou 9998) pour l'éviter. La persistance sur plusieurs jours reste à confirmer.
-- Le script **met la montre à l'heure** de l'ordinateur, comme le fait l'appli.
-- Ce n'est **pas un instrument de navigation**. Les prédictions n'incluent pas les effets météo (surcotes de 10 à 20 cm courantes). Référez-vous aux documents officiels du SHOM.
-- Testé uniquement sur une GBX-100, avec Saint-Malo.
-
-## Sources, licences et crédits
-
-- **Mesures marégraphiques :** © SHOM, réseau REFMAR, [data.shom.fr](https://data.shom.fr), [Licence Ouverte Etalab 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/). Elles ne sont pas incluses : `telecharger_refmar.py` les récupère. Les constantes fournies dans `data/` en sont dérivées.
-- **Protocole :** déterminé par analyse de l'appli CASIO WATCHES 4.6.0, à seule fin d'interopérabilité (directive 2009/24/CE, art. 6), et confirmé par des captures Bluetooth. Ce dépôt ne contient ni code ni fichiers de Casio ; seules les 6 constantes Casio de Saint-Malo sont citées dans `analyse.py` pour la comparaison. Le travail de reverse-engineering de [Gadgetbridge](https://gadgetbridge.org) sur les montres Casio a servi de point de départ.
-- **Code :** licence MIT (voir [LICENSE](LICENSE)).
+*Keywords: Casio G-Shock GBX-100 tide graph accuracy, wrong tide times, custom tide port, harmonic constituents, tide prediction, Bluetooth LE protocol, CASIO WATCHES app, G-SHOCK MOVE, NOAA, SHOM, UKHO.*

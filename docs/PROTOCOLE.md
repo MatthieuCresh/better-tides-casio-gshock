@@ -1,5 +1,7 @@
 # Protocole Bluetooth LE des données de marée — Casio GBX-100 (module 3482)
 
+*[English version](PROTOCOL.md)*
+
 Description établie par analyse de l'appli CASIO WATCHES 4.6.0 (Android) et confirmée par des captures Bluetooth entre l'appli iOS et une GBX-100, puis par des envois réussis depuis `scripts/envoi_maree.py`.
 
 Légende : ✅ = confirmé (capture ou envoi réussi), ℹ️ = déduit, ❓ = inconnu.
