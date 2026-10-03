@@ -2,6 +2,13 @@
 
 Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures du SHOM**, à la place des données approximatives fournies par l'appli CASIO WATCHES. La montre affiche ensuite les marées de Saint-Malo à la minute près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil).
 
+<p align="center">
+  <img src="docs/img/montre_maree.jpg" width="340" alt="GBX-100 en mode marée affichant ST-MALO SHOM : pleine mer 0:39 943 cm, basse mer 19:01 398 cm">
+  <img src="docs/img/montre_heure.jpg" width="340" alt="GBX-100 sur l'écran principal avec le graphe de marée ST-MALO SHOM">
+</p>
+
+<p align="center"><em>La montre le 3 octobre 2026 après l'envoi. Elle affiche une basse mer à 19:01 (398 cm) et une pleine mer à 0:39 (943 cm). L'annuaire SHOM donne 19:00 (4,00 m) et 00:40 (9,37 m). Les données Casio d'origine donnaient une basse mer à 19:13.</em></p>
+
 > *English summary: tools to compute 60-constituent harmonic tide constants from French SHOM tide-gauge data and upload them to a Casio G-Shock GBX-100 over Bluetooth LE, replacing Casio's coarse 4-constituent port data. Includes a description of the watch's tide-data BLE protocol.*
 
 | | Écart moyen sur l'heure des PM/BM | Écart max |
