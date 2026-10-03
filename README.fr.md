@@ -17,6 +17,25 @@ Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée 
 | Nos constantes (60 ondes, mesures SHOM) | ~3 min | 15 min |
 | Version alignée sur l'annuaire SHOM, vérifiée sur la montre | ≤ 1 min | — |
 
+## Pourquoi les données Casio d'origine ne sont pas exploitables (au moins à Saint-Malo)
+
+![Saint-Malo : données Casio d'origine, mesures et nos constantes](docs/img/ecart_casio.png)
+
+*En haut : la marée du 3 octobre 2026. Le modèle Casio d'origine tombe à peu près juste sur les basses mers, mais met la pleine mer **43 minutes trop tard**. En bas : l'erreur sur l'heure de 607 pleines et basses mers (janvier à juin 2025), face aux **mesures réelles** du marégraphe SHOM. Ces mesures n'ont pas servi à ajuster nos constantes. Le graphique se reproduit avec `scripts/figure_ecart.py`.*
+
+| Face aux mesures, janvier-juin 2025 | Données Casio d'origine | Nos constantes |
+|---|---|---|
+| Erreur moyenne sur l'heure des PM/BM | **29 min** | 5 min |
+| Marées décalées de plus de 30 min | **44 %** | 0 % |
+| Pire cas | **2 h 05** | 24 min |
+
+Pourquoi c'est inutilisable pour naviguer ici :
+- **L'erreur est grande et imprévisible.** Elle va d'environ −80 à +120 minutes selon le jour et le moment de la marée. Aucune correction fixe « de tête » ne peut la compenser : le même jour, la basse mer peut être juste et la pleine mer avoir 43 minutes de retard.
+- **Une erreur d'heure devient une erreur de hauteur.** À Saint-Malo, le marnage atteint 12 à 13 m en vives-eaux. À mi-marée, l'eau monte ou descend jusqu'à environ 3 m par heure (règle des douzièmes) : 30 minutes d'écart, c'est parfois plus d'un mètre d'eau. Sur 2025, l'erreur de hauteur du modèle Casio était de 50 cm en moyenne, et jusqu'à 1,60 m.
+- **Ce qui compte se joue à la minute :** ouverture des écluses et accès au port calés sur la pleine mer, mouillages qui assèchent, seuils et passages peu profonds, renverse des courants très forts du golfe de Saint-Malo.
+
+La montre n'y est pour rien. C'est le jeu de données à 4 ondes qui pose problème : à Saint-Malo, la courbe est fortement déformée par les ondes de petits fonds (M4, MS4, MN4…) et modulée par N2 et K2 entre vives-eaux et mortes-eaux, et Casio n'envoie aucune de ces ondes. D'autres ports peuvent être corrects. Ceux à grand marnage, ou à marée très peu sinusoïdale, risquent de présenter le même défaut.
+
 ## Le problème
 
 Pour Saint-Malo, l'appli Casio n'envoie que **4 ondes harmoniques** (M2, S2, K1, O1, plus deux petites ondes de petits fonds). Il manque notamment N2 (0,71 m), K2 (0,41 m), M4 et MS4, ce qui est énorme pour l'un des plus grands marnages d'Europe. Résultat : des heures de pleine mer fausses de 30 minutes en moyenne, et parfois de plus d'une heure et demie.
@@ -134,6 +153,7 @@ Les étapes :
 - `gen_blob.py` produit le bloc de 1009 octets. Le nom affiché fait 18 caractères au maximum.
 - `aligne_shom.py` est optionnel : il applique le décalage vers l'annuaire et vérifie le résultat.
 - `previsions.py` affiche les PM/BM prévues pour comparer avec la montre.
+- `figure_ecart.py` produit le graphique de comparaison Casio / mesures / nos constantes.
 
 Bonus : `parse_pklg.py` décode une capture Bluetooth PacketLogger (macOS/iOS) en liste d'opérations GATT.
 

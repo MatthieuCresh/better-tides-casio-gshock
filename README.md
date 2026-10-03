@@ -19,6 +19,25 @@ Our test case is **Saint-Malo, France**, with data from the French hydrographic 
 | Our constants (60 constituents, SHOM gauge data) | ~3 min | 15 min |
 | Version aligned on the official SHOM tide table, checked on the watch | ≤ 1 min | — |
 
+## Why Casio's stock data is not usable (at least in Saint-Malo)
+
+![Saint-Malo: Casio stock data vs measurements vs our constants](docs/img/ecart_casio.png)
+
+*Top: the tide on 3 October 2026. Casio's stock model gets the low waters roughly right but puts high water **43 minutes late**. Bottom: error on the time of 607 high and low waters (January–June 2025) against the **actual measurements** of the SHOM tide gauge. Those measurements were not used to fit our constants. Reproduce with `scripts/figure_ecart.py`.*
+
+| Against measurements, Jan–Jun 2025 | Casio stock data | Our constants |
+|---|---|---|
+| Mean error on high/low water time | **29 min** | 5 min |
+| Tides more than 30 min off | **44 %** | 0 % |
+| Worst case | **2 h 05** | 24 min |
+
+Why this makes the stock tide graph useless for actual sailing here:
+- **The error is large and unpredictable.** It ranges from about −80 to +120 minutes depending on the day and on the point in the tidal cycle. A fixed mental correction cannot fix it: on the same day, low water can be right and high water 43 min late.
+- **Time errors become height errors.** Saint-Malo's range reaches 12–13 m at springs. Around mid-tide the water moves by up to about 3 m per hour (rule of twelfths), so 30 minutes off can mean more than a metre of water. Over 2025 the stock model's height error averaged 50 cm, and reached 1.6 m.
+- **The things that matter depend on the minute:** lock gates and harbour access timed on high water, drying moorings, sills and shallow passages, and the turn of the very strong tidal streams in the Gulf of Saint-Malo.
+
+The cause is not the watch. It is the 4-constituent data set: Saint-Malo's tide is strongly distorted by shallow-water constituents (M4, MS4, MN4…) and the N2/K2 spring-neap modulation, none of which Casio sends. Ports elsewhere may be fine. Ports with large ranges or strongly non-sinusoidal tides are likely to show the same problem.
+
 ## The problem
 
 For Saint-Malo, the Casio app only sends **4 harmonic constituents** (M2, S2, K1, O1, plus two tiny shallow-water terms). It leaves out N2 (0.71 m), K2 (0.41 m), M4, MS4 and others, which matters a lot at one of Europe's largest tidal ranges.
@@ -136,6 +155,7 @@ What each step does:
 - `gen_blob.py` builds the 1,009-byte block. The displayed name is at most 18 characters.
 - `aligne_shom.py` is optional: it applies the time offset towards the official table and checks the result.
 - `previsions.py` prints predicted high/low waters, to compare with the watch.
+- `figure_ecart.py` draws the Casio vs measurements vs our constants comparison chart.
 
 Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into a list of GATT operations.
 
