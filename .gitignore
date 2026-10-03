@@ -1,0 +1,8 @@
+# mesures SHOM : à télécharger avec scripts/telecharger_refmar.py
+data/saint_malo_horaire.csv
+# journaux et captures Bluetooth (contiennent des identifiants d'appareils)
+*_log.txt
+*.pklg
+__pycache__/
+.venv/
+.DS_Store
