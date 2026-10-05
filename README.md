@@ -194,12 +194,6 @@ What each step does:
 
 Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into a list of GATT operations.
 
-## FAQ
-
-**Can I use another port and choose the name shown on the watch?** Yes, see [Create your own custom port](#create-your-own-custom-port-any-location-any-name).
-
-**Can this add new features to the watch, like an hourly chime?** No. We only send the watch **data** in a format its firmware already understands. Adding behaviour the firmware does not have would mean modifying the firmware, which this project deliberately avoids. Settings that already exist in the firmware may be reachable over Bluetooth the same way: the [Gadgetbridge](https://gadgetbridge.org) project has decoded many Casio settings.
-
 ## Limitations and caveats
 
 - **Personal project, not affiliated with Casio or SHOM.** Use at your own risk. The worst case we hit was reversible: selecting a port again in the CASIO WATCHES app restores the stock data.
