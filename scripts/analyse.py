@@ -1,9 +1,16 @@
-import numpy as np, pandas as pd, utide, copy, csv, json, warnings
+"""Analyse harmonique (60 ondes Casio) d'une série de hauteurs d'eau.
+Sans argument : Saint-Malo, ajustement 2019-2024, puis comparaison au modèle Casio sur 2025.
+Pour un autre port : python scripts/analyse.py <mesures.csv> <sortie.json> <latitude>
+  (CSV avec colonnes t = date/heure UTC et h = hauteur en mètres ; toute la série sert à l'ajustement)"""
+import sys, numpy as np, pandas as pd, utide, copy, csv, json, warnings
 warnings.filterwarnings('ignore')
-LAT=48.6408
-df=pd.read_csv('data/saint_malo_horaire.csv',parse_dates=['t'])
-t=df.t.dt.tz_convert(None)
-train=(t<'2025-01-01'); test=(t>='2025-01-01')&(t<'2026-01-01')
+CUSTOM = len(sys.argv) > 1
+SRC = sys.argv[1] if CUSTOM else 'data/saint_malo_horaire.csv'
+OUT = sys.argv[2] if len(sys.argv) > 2 else 'data/saint_malo_60.json'
+LAT = float(sys.argv[3]) if len(sys.argv) > 3 else 48.6408
+df=pd.read_csv(SRC,parse_dates=['t'])
+t=df.t.dt.tz_convert(None) if df.t.dt.tz is not None else df.t
+train=(t<'2025-01-01') if not CUSTOM else (t==t); test=(t>='2025-01-01')&(t<'2026-01-01')
 # 60 constituants Casio (ordre du fichier) -> noms utide
 CASIO="Sa Ssa Mm MSf Mf 2Q1 SIG1 Q1 RHO1 O1 MP1 M1 CHI1 PI1 P1 S1 K1 PSI1 PHI1 THE1 J1 SO1 OO1 OQ2 MNS2 2N2 MU2 N2 NU2 OP2 M2 MKS2 LDA2 L2 T2 S2 R2 K2 MSN2 KJ2 2SM2 MO3 M3 SO3 MK3 SK3 MN4 M4 SN4 MS4 MK4 S4 SK4 2MN6 M6 MSN6 2MS6 2MK6 2SM6 MSK6".split()
 UT={'Sa':'SA','Ssa':'SSA','Mm':'MM','MSf':'MSF','Mf':'MF','M1':'NO1'}
@@ -19,7 +26,9 @@ top=np.argsort(-coef.A)[:12]
 print("Z0 =",round(coef.mean,3))
 for i in top: print(f"  {coef.name[i]:5s} H={coef.A[i]:.3f} m  G={coef.g[i]:6.1f}°")
 pickle_out={'Z0':coef.mean,'name':list(coef.name),'A':list(coef.A),'g':list(coef.g)}
-json.dump(pickle_out,open('data/saint_malo_60.json','w'),indent=1)
+json.dump(pickle_out,open(OUT,'w'),indent=1)
+if CUSTOM:
+    print("Constantes écrites dans", OUT); sys.exit()
 # Casio 4 composantes
 casio4={'M2':(207,3.69),'S2':(259,1.43),'K1':(112,0.10),'O1':(359,0.08),'M4':(286,0.017),'M6':(164,0.0)}
 def subset(c,vals,z0,shift_h=0.0):

@@ -4,7 +4,7 @@
 
 The GBX-100 has a nice tide graph, but for many ports the data that the **CASIO WATCHES** app sends is crude, and high/low water times can be off by more than an hour. This project computes **proper harmonic tide constants** from official measurements and uploads them to the watch in Casio's own format. The watch then shows tides accurate to about a minute, **fully offline**, on its stock screen (tide graph, high/low water, moon, sunrise/sunset). The firmware is not modified.
 
-Our test case is **Saint-Malo, France**, with data from the French hydrographic office **SHOM**. The method works with any tide gauge or published constituents (see [other data sources](#other-data-sources-noaa-ukho-and-more)).
+Our test case is **Saint-Malo, France**, with data from the French hydrographic office **SHOM**, uploaded as a **custom port** named "ST-MALO SHOM". You can create your own port for any location, with any name ([how](#create-your-own-custom-port-any-location-any-name)). The method works with any tide gauge or published constituents (see [other data sources](#other-data-sources-noaa-ukho-and-more)).
 
 <p align="center">
   <img src="docs/img/montre_maree.jpg" width="340" alt="Casio G-Shock GBX-100 tide mode showing ST-MALO SHOM: high water 0:39 943 cm, low water 19:01 398 cm">
@@ -144,6 +144,34 @@ To read the tide settings only, without writing anything:
 python scripts/lecture_montre.py
 ```
 
+### Create your own custom port (any location, any name)
+
+"ST-MALO SHOM" is not a Casio port: it is a **custom port** we built. You can do the same for any place where you can get tide data, with the name you want on the tide screen.
+
+1. **Get data.** Either a CSV of water levels covering at least a year, with columns `t` (UTC date-time) and `h` (height in metres above your chart datum), or published harmonic constituents (NOAA, for example). For constituents, write `data/my_port.json` directly in the same format as `data/saint_malo_60.json`: `Z0` and `A` in metres, Greenwich phases `g` in degrees, utide constituent names. Then skip step 2.
+2. **Compute the constants:**
+   ```bash
+   python scripts/analyse.py data/my_port.csv data/my_port.json 50.37
+   ```
+   (the last number is the latitude)
+3. **Convert to Casio's format:** name, latitude, then longitude (East positive):
+   ```bash
+   python scripts/constantes_casio.py data/my_port.json data/my_port_casio60.csv "MY PORT" 50.37 -4.14
+   ```
+4. **Build the block** with the **name shown on the watch**:
+   ```bash
+   python scripts/gen_blob.py data/my_port_casio60.csv data/my_port.bin "PLYMOUTH"
+   ```
+5. **Upload it** as described above:
+   ```bash
+   python scripts/envoi_maree.py data/my_port.bin
+   ```
+
+Notes:
+- **Name:** up to 18 bytes. Only uppercase letters, digits, spaces and hyphens have been tested ("ST-MALO SHOM"). Lowercase and accented characters are untested.
+- **Time zone:** `gen_blob.py` currently encodes **UTC+1 with EU daylight saving time** (France). For another zone, change `tz_min` and `dst_diff_min` in `make_blob()`. The DST rule codes for regions outside the EU are not known yet. Capturing the official app with a port in your zone (see `parse_pklg.py`) will reveal them.
+- **One custom port at a time.** The watch has a single "APP" slot for full constants. Switching ports means re-uploading, which takes about a minute.
+
 ### Recompute the constants, or compute them for another port
 
 ```bash
@@ -165,6 +193,12 @@ What each step does:
 - `figure_ecart.py` draws the Casio vs measurements vs our constants comparison chart.
 
 Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into a list of GATT operations.
+
+## FAQ
+
+**Can I use another port and choose the name shown on the watch?** Yes, see [Create your own custom port](#create-your-own-custom-port-any-location-any-name).
+
+**Can this add new features to the watch, like an hourly chime?** No. We only send the watch **data** in a format its firmware already understands. Adding behaviour the firmware does not have would mean modifying the firmware, which this project deliberately avoids. Settings that already exist in the firmware may be reachable over Bluetooth the same way: the [Gadgetbridge](https://gadgetbridge.org) project has decoded many Casio settings.
 
 ## Limitations and caveats
 

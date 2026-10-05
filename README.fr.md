@@ -2,7 +2,7 @@
 
 *[English version](README.md)*
 
-Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures officielles d'un marégraphe**, ici le SHOM pour Saint-Malo, à la place des données approximatives de l'appli CASIO WATCHES. La montre affiche ensuite des marées exactes à la minute près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil). Ni le firmware ni la montre ne sont modifiés.
+Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures officielles d'un marégraphe**, ici le SHOM pour Saint-Malo, envoyées comme un **port personnalisé** baptisé « ST-MALO SHOM », à la place des données approximatives de l'appli CASIO WATCHES. La montre affiche ensuite des marées exactes à la minute près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil). Ni le firmware ni la montre ne sont modifiés. On peut créer son propre port, n'importe où et avec le nom de son choix ([comment](#créer-son-propre-port-nimporte-quel-lieu-nimporte-quel-nom)).
 
 <p align="center">
   <img src="docs/img/montre_maree.jpg" width="340" alt="GBX-100 en mode marée affichant ST-MALO SHOM : pleine mer 0:39 943 cm, basse mer 19:01 398 cm">
@@ -142,6 +142,34 @@ Pour lire seulement les réglages de marée, sans rien écrire :
 python scripts/lecture_montre.py
 ```
 
+### Créer son propre port (n'importe quel lieu, n'importe quel nom)
+
+« ST-MALO SHOM » n'est pas un port Casio : c'est un **port personnalisé**, que nous avons construit. Vous pouvez faire de même pour n'importe quel endroit où vous trouvez des données de marée, avec le nom de votre choix sur l'écran de marée.
+
+1. **Récupérer des données.** Soit un CSV de hauteurs d'eau couvrant au moins un an, avec les colonnes `t` (date et heure UTC) et `h` (hauteur en mètres au-dessus du zéro des cartes), soit des constantes harmoniques publiées (NOAA par exemple). Dans ce second cas, écrivez directement `data/mon_port.json` au même format que `data/saint_malo_60.json` : `Z0` et `A` en mètres, phases `g` de Greenwich en degrés, noms d'ondes utide. Passez alors l'étape 2.
+2. **Calculer les constantes :**
+   ```bash
+   python scripts/analyse.py data/mon_port.csv data/mon_port.json 47.27
+   ```
+   (le dernier nombre est la latitude)
+3. **Convertir au format Casio :** nom, latitude, puis longitude (Est positif) :
+   ```bash
+   python scripts/constantes_casio.py data/mon_port.json data/mon_port_casio60.csv "MON PORT" 47.27 -2.21
+   ```
+4. **Générer le bloc** avec le **nom affiché sur la montre** :
+   ```bash
+   python scripts/gen_blob.py data/mon_port_casio60.csv data/mon_port.bin "PORNIC"
+   ```
+5. **L'envoyer** comme décrit plus haut :
+   ```bash
+   python scripts/envoi_maree.py data/mon_port.bin
+   ```
+
+À savoir :
+- **Nom :** 18 octets au maximum. Seuls les majuscules, chiffres, espaces et tirets ont été testés (« ST-MALO SHOM »). Minuscules et accents : non testés.
+- **Fuseau horaire :** `gen_blob.py` encode pour l'instant **UTC+1 avec l'heure d'été européenne** (France). Pour un autre fuseau, modifiez `tz_min` et `dst_diff_min` dans `make_blob()`. Les codes de règle d'heure d'été hors UE ne sont pas encore connus : une capture de l'appli officielle avec un port de votre zone (voir `parse_pklg.py`) permettra de les trouver.
+- **Un seul port personnalisé à la fois.** La montre n'a qu'un emplacement « APP » pour des constantes complètes. Changer de port, c'est renvoyer un bloc, ce qui prend une minute.
+
 ### Recalculer les constantes, ou les calculer pour un autre port
 
 ```bash
@@ -163,6 +191,12 @@ Les étapes :
 - `figure_ecart.py` produit le graphique de comparaison Casio / mesures / nos constantes.
 
 Bonus : `parse_pklg.py` décode une capture Bluetooth PacketLogger (macOS/iOS) en liste d'opérations GATT.
+
+## FAQ
+
+**Peut-on utiliser un autre port et choisir le nom affiché ?** Oui, voir [Créer son propre port](#créer-son-propre-port-nimporte-quel-lieu-nimporte-quel-nom).
+
+**Peut-on ajouter des fonctions à la montre, comme un bip horaire ?** Non. Nous envoyons seulement des **données** à la montre, dans un format que son firmware comprend déjà. Ajouter un comportement que le firmware n'a pas demanderait de modifier ce firmware, ce que ce projet évite volontairement. Les réglages qui existent déjà dans le firmware sont peut-être accessibles en Bluetooth de la même manière : le projet [Gadgetbridge](https://gadgetbridge.org) a décodé de nombreux réglages Casio.
 
 ## Limites et précautions
 
