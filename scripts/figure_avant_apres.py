@@ -20,7 +20,7 @@ casio['A'] = np.array([CASIO[n][1] for n in casio.name])
 casio['g'] = np.array([(CASIO[n][0] - 360 * f) % 360 for n, f in zip(casio.name, casio.aux.frq)])
 casio['mean'] = 6.78
 
-day = pd.date_range('2026-10-03 07:00', '2026-10-03 15:00', freq='2min')        # UTC (09:00-17:00 Paris)
+day = pd.date_range('2026-10-03 07:00', '2026-10-03 15:00', freq='1min')        # UTC (09:00-17:00 Paris)
 loc = lambda x: x.tz_localize('UTC').tz_convert('Europe/Paris').tz_localize(None)
 url = ('https://services.data.shom.fr/maregraphie/observation/json/410?sources=1'
        '&dtStart=2026-10-03T07:00:00Z&dtEnd=2026-10-03T15:00:00Z')
