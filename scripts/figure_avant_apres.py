@@ -40,14 +40,16 @@ fig.text(.27, .785, "Casio's stock data (4 tidal components)", ha='center', font
 ax = fig.add_axes([.07, .30, .40, .44])
 ax.plot(loc(obs.index), obs.values, color=GREY, lw=5, label='Real tide (gauge)', solid_capstyle='round')
 ax.plot(loc(day), pc, color=RED, lw=2.5, ls='--', label="Casio's model (recomputed)")
-hw_obs = loc(pd.DatetimeIndex([obs.idxmax()]))[0]; hw_c = loc(pd.DatetimeIndex([day[np.argmax(pc)]]))[0]
+hw_tab = pd.Timestamp('2026-10-03 12:00')                     # pleine mer de l'annuaire SHOM : 12:00, 10,11 m
+hw_c = loc(pd.DatetimeIndex([day[np.argmax(pc)]]))[0]
+ax.scatter([hw_tab], [10.11], marker='D', s=70, color=INK, zorder=5, label='Official SHOM tide table')
 y = 10.45
-ax.annotate('', xy=(hw_c, y), xytext=(hw_obs, y), arrowprops=dict(arrowstyle='<->', color=RED, lw=2))
-ax.text(hw_obs + (hw_c - hw_obs) / 2, y + .12, f'high water {int((hw_c - hw_obs).total_seconds() // 60)} min late',
+ax.annotate('', xy=(hw_c, y), xytext=(hw_tab, y), arrowprops=dict(arrowstyle='<->', color=RED, lw=2))
+ax.text(hw_tab + (hw_c - hw_tab) / 2, y + .12, f'high water {round((hw_c - hw_tab).total_seconds() / 60)} min late',
         ha='center', fontsize=12.5, color=RED, weight='bold')
 ax.set_ylim(5.5, 11); ax.set_ylabel('Water height (m)', fontsize=11)
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M')); ax.tick_params(labelsize=10)
-ax.legend(loc='lower center', fontsize=11, frameon=False, ncol=2)
+ax.legend(loc='lower center', fontsize=10.5, frameon=False, ncol=2)
 for s in ('top', 'right'): ax.spines[s].set_visible(False)
 ax.set_title('3 October 2026', fontsize=11.5, color='#616161', loc='left')
 fig.text(.27, .19, '29 min', ha='center', fontsize=40, weight='bold', color=RED)
