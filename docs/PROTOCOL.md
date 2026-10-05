@@ -94,6 +94,5 @@ The watch also refuses the transfer ("busy") while it is **displaying tide mode*
 ## 5. Open questions
 
 - Exact meaning of "graph pattern" and "HcT".
-- Whether the data persists through the official app's automatic reconnections.
 - Detailed format of the user points (units 3–5).
 - Behaviour of other modules (3586, 3452, 5623…).

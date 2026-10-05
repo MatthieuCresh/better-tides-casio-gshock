@@ -160,7 +160,7 @@ Bonus : `parse_pklg.py` décode une capture Bluetooth PacketLogger (macOS/iOS) e
 ## Limites et précautions
 
 - **Projet personnel, non affilié à Casio ni au SHOM.** À utiliser à vos risques. Le pire cas rencontré est réversible : resélectionner un port dans l'appli CASIO WATCHES remet les données d'origine.
-- **L'appli Casio peut écraser les données.** À chaque reconnexion, elle renvoie ses propres données pour le numéro de port enregistré. Le script utilise un numéro inconnu de l'appli (9999 ou 9998). La persistance sur plusieurs jours reste à confirmer.
+- **À la reconnexion, l'appli Casio renvoie ses propres données pour les ports qu'elle connaît.** Le script utilise un numéro qu'elle ne connaît pas (9999 ou 9998), et ça fonctionne : les données envoyées ont survécu à la reconnexion de la montre au téléphone (vérifié deux jours après l'envoi, le 5 octobre 2026 : BM 9:09 contre 09:06 dans l'annuaire, PM 15:08 contre 15:10). En revanche, sélectionner un port dans l'appli les remplace.
 - Ce n'est **pas un instrument de navigation**. Les prédictions n'incluent pas la météo (surcotes de 10 à 20 cm courantes). Référez-vous aux documents officiels.
 
 ## Sources, licences et crédits

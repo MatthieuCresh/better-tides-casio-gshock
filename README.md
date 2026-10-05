@@ -162,7 +162,7 @@ Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into
 ## Limitations and caveats
 
 - **Personal project, not affiliated with Casio or SHOM.** Use at your own risk. The worst case we hit was reversible: selecting a port again in the CASIO WATCHES app restores the stock data.
-- **The Casio app may overwrite the data.** On each reconnection it re-sends its own data for the stored port ID. The script uses an ID the app does not know (9999 or 9998) to avoid this. Persistence over several days is still to be confirmed.
+- **The Casio app re-sends its own data on reconnection for port IDs it knows.** The script uses an ID the app does not know (9999 or 9998), and this works: the uploaded data survived the watch's reconnection to the phone (checked 2 days after the upload, 5 Oct 2026: low water 9:09 vs 09:06 in the SHOM table, high water 15:08 vs 15:10). Selecting a port in the app, however, replaces it.
 - This is **not a navigation instrument**. Predictions do not include weather effects (storm surges of 10–20 cm are common). Always refer to official publications.
 
 ## Sources, licences and credits

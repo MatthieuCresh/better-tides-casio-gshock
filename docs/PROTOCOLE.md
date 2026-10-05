@@ -94,5 +94,4 @@ La montre refuse aussi le transfert (« occupée ») tant qu'elle **affiche le m
 ## 5. Points encore ouverts
 
 - Sens exact de « graph pattern » et de « HcT ».
-- Persistance des données lors des reconnexions automatiques de l'appli officielle.
 - Format détaillé des points utilisateur (unités 3 à 5).
