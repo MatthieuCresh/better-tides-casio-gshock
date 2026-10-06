@@ -146,7 +146,7 @@ python scripts/lecture_montre.py
 
 « ST-MALO SHOM » n'est pas un port Casio : c'est un **port personnalisé**, que nous avons construit. Vous pouvez faire de même pour n'importe quel endroit où vous trouvez des données de marée, avec le nom de votre choix sur l'écran de marée.
 
-1. **Récupérer des données.** Soit un CSV de hauteurs d'eau couvrant au moins un an, avec les colonnes `t` (date et heure UTC) et `h` (hauteur en mètres au-dessus du zéro des cartes), soit des constantes harmoniques publiées (NOAA par exemple). Dans ce second cas, écrivez directement `data/mon_port.json` au même format que `data/saint_malo_60.json` : `Z0` et `A` en mètres, phases `g` de Greenwich en degrés, noms d'ondes utide. Passez alors l'étape 2.
+1. **Récupérer des données.** Soit un CSV de hauteurs d'eau couvrant au moins un an, avec les colonnes `t` (date et heure UTC) et `h` (hauteur en mètres au-dessus du zéro des cartes), voir [`data/sample_tide_data.csv`](data/sample_tide_data.csv). Des valeurs horaires suffisent, et des prédictions officielles conviennent aussi bien que des mesures ; soit des constantes harmoniques publiées (NOAA par exemple). Dans ce second cas, écrivez directement `data/mon_port.json` au même format que `data/saint_malo_60.json` : `Z0` et `A` en mètres, phases `g` de Greenwich en degrés, noms d'ondes utide. Passez alors l'étape 2.
 2. **Calculer les constantes :**
    ```bash
    python scripts/analyse.py data/mon_port.csv data/mon_port.json 47.27
@@ -167,7 +167,7 @@ python scripts/lecture_montre.py
 
 À savoir :
 - **Nom :** 18 octets au maximum. Seuls les majuscules, chiffres, espaces et tirets ont été testés (« ST-MALO SHOM »). Minuscules et accents : non testés.
-- **Fuseau horaire :** `gen_blob.py` encode pour l'instant **UTC+1 avec l'heure d'été européenne** (France). Pour un autre fuseau, modifiez `tz_min` et `dst_diff_min` dans `make_blob()`. Les codes de règle d'heure d'été hors UE ne sont pas encore connus : une capture de l'appli officielle avec un port de votre zone (voir `parse_pklg.py`) permettra de les trouver.
+- **Fuseau horaire :** passez votre décalage UTC (en heures, hors heure d'été) et un code de règle d'heure d'été en 4ᵉ et 5ᵉ arguments de `gen_blob.py`, par exemple `... "MON PORT" -8 2`. Par défaut : UTC+1 avec la règle 2 = heure d'été de l'Union européenne (France), seul code confirmé à ce jour. Les codes des autres régions (Amérique du Nord, etc.) ne sont pas encore connus ; une capture de l'appli officielle pendant qu'elle envoie un port de votre zone (voir `parse_pklg.py`) permettra de les trouver.
 - **Un seul port personnalisé à la fois.** La montre n'a qu'un emplacement « APP » pour des constantes complètes. Changer de port, c'est renvoyer un bloc, ce qui prend une minute.
 
 ### Recalculer les constantes, ou les calculer pour un autre port
