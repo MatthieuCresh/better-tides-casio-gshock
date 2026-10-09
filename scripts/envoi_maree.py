@@ -9,7 +9,7 @@ ALL  = "26eb002d-b012-49a8-b1f8-394fb2032b0f"   # réponses / écritures de rég
 DRSP = "26eb0023-b012-49a8-b1f8-394fb2032b0f"   # contrôle des transferts « convoy »
 CONV = "26eb0024-b012-49a8-b1f8-394fb2032b0f"   # données des transferts
 
-BLOB_FILE = sys.argv[1] if len(sys.argv) > 1 else "data/saint_malo_3482_shom.bin"
+BLOB_FILE = sys.argv[1] if len(sys.argv) > 1 else "data/saint_malo_3482.bin"
 PORT_ID   = int(sys.argv[2]) if len(sys.argv) > 2 else 9999
 RAISONS = {1: "pile faible", 2: "température basse", 3: "mémoire non effacée", 4: "occupée", 7: "en préparation"}
 LOG = open("envoi_log.txt", "a")

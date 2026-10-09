@@ -26,7 +26,6 @@ casio = fit(train, list(CASIO))
 casio['A'] = np.array([CASIO[n][1] for n in casio.name])
 casio['g'] = np.array([(CASIO[n][0] - 360 * f) % 360 for n, f in zip(casio.name, casio.aux.frq)])
 casio['mean'] = 6.78
-shift = copy.deepcopy(ours); shift['g'] = (np.array(ours.g) - 360 * np.array(ours.aux.frq) * 12 / 60) % 360   # aligné annuaire
 pred = lambda c, tt: utide.reconstruct(tt, c, verbose=False).h
 
 def extrema(times, h):
@@ -47,7 +46,7 @@ loc = lambda x: x.tz_localize('UTC').tz_convert('Europe/Paris').tz_localize(None
 obs = shom(1, '2026-10-02T22:00:00Z', '2026-10-03T22:00:00Z').rolling(11, center=True).mean()
 ax1.plot(loc(obs.index), obs.values, color='0.55', lw=3, label='Measured (SHOM tide gauge)')
 ax1.plot(loc(day), pred(casio, day), color='#d62728', lw=1.8, ls='--', label='Casio stock data (4 constituents)')
-ax1.plot(loc(day), pred(shift, day), color='#1f77b4', lw=1.8, label='Our constants (60 constituents, aligned on SHOM table)')
+ax1.plot(loc(day), pred(ours, day), color='#1f77b4', lw=1.8, label='Our constants (60 constituents)')
 annuaire = [('06:30', 3.70), ('12:00', 10.11), ('19:00', 4.00)]
 ax1.scatter([pd.Timestamp(f'2026-10-03 {h}') for h, _ in annuaire], [v for _, v in annuaire], zorder=5,
             color='k', marker='D', s=30, label='Official SHOM tide table')

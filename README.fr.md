@@ -2,7 +2,7 @@
 
 *[English version](README.md)*
 
-Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures officielles d'un marégraphe**, ici le SHOM pour Saint-Malo, envoyées comme un **port personnalisé** baptisé « ST-MALO SHOM », à la place des données approximatives de l'appli CASIO WATCHES. La montre affiche ensuite des marées exactes à la minute près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil). Ni le firmware ni la montre ne sont modifiés. On peut créer son propre port, n'importe où et avec le nom de son choix ([comment](#créer-son-propre-port-nimporte-quel-lieu-nimporte-quel-nom)).
+Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée calculées à partir des **mesures officielles d'un marégraphe**, ici le SHOM pour Saint-Malo, envoyées comme un **port personnalisé** baptisé « ST-MALO SHOM », à la place des données approximatives de l'appli CASIO WATCHES. La montre affiche ensuite des marées justes à quelques minutes près, **hors connexion**, avec son écran d'origine (graphe, PM/BM, lune, soleil). Ni le firmware ni la montre ne sont modifiés. On peut créer son propre port, n'importe où et avec le nom de son choix ([comment](#créer-son-propre-port-nimporte-quel-lieu-nimporte-quel-nom)).
 
 <p align="center">
   <img src="docs/img/montre_maree.jpg" width="340" alt="GBX-100 en mode marée affichant ST-MALO SHOM : pleine mer 0:39 943 cm, basse mer 19:01 398 cm">
@@ -18,11 +18,11 @@ Envoyer à une **Casio G-Shock GBX-100** (module 3482) des constantes de marée 
 
 <p align="center"><em>Deux jours plus tard (5 octobre 2026), après la reconnexion de la montre au téléphone, les données sont toujours là. Basse mer à 9:09 (491 cm) et pleine mer à 15:08 (904 cm), contre 09:06 (4,90 m) et 15:10 (9,08 m) dans l'annuaire SHOM.</em></p>
 
-| Saint-Malo (face aux mesures du marégraphe, 2025) | Écart moyen sur l'heure des PM/BM | Écart max |
+| Saint-Malo, écart sur l'heure des PM/BM | Moyen | Max |
 |---|---|---|
-| Données Casio d'origine (4 ondes) | 29 min | 2 h 05 |
-| Nos constantes (60 ondes, mesures SHOM) | 5 min | 24 min |
-| Version alignée sur l'annuaire SHOM : montre face à l'annuaire, 3 octobre 2026 | ≤ 1 min | — |
+| Données Casio d'origine (4 ondes), face aux mesures du marégraphe (2025) | 29 min | 2 h 05 |
+| Nos constantes (60 ondes, calées sur les mesures), face aux mesures (2025) | 5 min | 24 min |
+| Nos constantes recalées sur l'annuaire officiel, face à l'annuaire (août-octobre 2026, 309 marées non utilisées pour le calage) | 3,4 min | 14 min |
 
 ## Pourquoi les données Casio d'origine ne sont pas exploitables (au moins à Saint-Malo)
 
@@ -65,6 +65,8 @@ Nous avons procédé par hypothèses successives, chacune vérifiée par une sou
 
 **6. Diagnostiquer les échecs.** Quand la montre s'est mise à refuser les transferts (« occupée »), une seconde capture de l'appli a montré la poignée de main complète qu'elle fait avant chaque transfert. Le script la reproduit désormais.
 
+**7. Coller à l'annuaire officiel, et tirer la leçon d'une erreur.** Notre premier essai décalait toutes les constantes de 12 minutes, calées sur **trois jours de mortes-eaux**. Ces jours-là, la montre tombait à la minute ; cinq jours plus tard, en vives-eaux, elle avait 13 à 21 minutes d'avance. L'écart entre l'annuaire et le modèle calé sur les mesures n'est pas constant : environ 13 min en mortes-eaux, presque 0 en vives-eaux. Un décalage fixe ne peut pas le corriger. Nous l'avons remplacé par un vrai calage sur 9,5 mois de PM/BM de l'annuaire, validé sur des mois jamais utilisés, avec vives-eaux et mortes-eaux présentées séparément (voir [Coller à son annuaire officiel](#coller-à-son-annuaire-officiel)).
+
 ### Hypothèses validées ou réfutées
 
 | Hypothèse | Résultat | Preuve |
@@ -78,7 +80,9 @@ Nous avons procédé par hypothèses successives, chacune vérifiée par une sou
 | Un client tiers peut écrire dans la montre sans appairage | ✅ Validée | Connexion et envoi réussis depuis un Mac |
 | La montre recharge les données à chaque envoi | ❌ Réfutée | Elle ne recharge que si le numéro de port change |
 | La montre accepte un transfert à tout moment | ❌ Réfutée | Elle refuse en mode marée, et sans la poignée de main de l'appli |
-| L'annuaire officiel colle exactement aux mesures | ❌ Réfutée (à Saint-Malo) | L'annuaire est ~12 min plus tôt que notre modèle ; la marée mesurée se situe entre les deux |
+| L'annuaire officiel colle exactement aux mesures | ❌ Réfutée (à Saint-Malo) | L'écart dépend de la marée : ~13 min en mortes-eaux, ~0 en vives-eaux |
+| Un décalage horaire fixe suffit pour coller à l'annuaire | ❌ Réfutée | Calé sur 3 jours de mortes-eaux, il mettait la montre 13 à 21 min en avance en vives-eaux |
+| Un calage sur une longue série de PM/BM officielles fonctionne | ✅ Validée | 3,4 min d'écart moyen sur des mois non utilisés, plus de biais en vives-eaux |
 
 Le détail du protocole est dans [docs/PROTOCOLE.md](docs/PROTOCOLE.md).
 
@@ -111,7 +115,7 @@ Nous avons utilisé le **SHOM** parce que la montre sert à Saint-Malo. La méth
 - les phases doivent être en **référence UTC/Greenwich** (et non en heure locale), et les amplitudes en **cm** ;
 - les noms d'ondes doivent être mis en correspondance avec l'ordre Casio (fait dans `constantes_casio.py`) ;
 - le zéro des hauteurs (zéro hydrographique local, ou niveau moyen) détermine les hauteurs affichées ;
-- pour coller à l'annuaire officiel local plutôt qu'aux mesures, un décalage peut être calé comme dans `aligne_shom.py`.
+- pour coller à l'annuaire officiel local plutôt qu'aux mesures, calez sur ses PM/BM (voir [Coller à son annuaire officiel](#coller-à-son-annuaire-officiel)), pas avec un décalage fixe.
 
 ## Utilisation
 
@@ -131,10 +135,10 @@ Toutes les commandes se lancent depuis la racine du dépôt.
 3. Lancez la commande, puis appuyez sur le bouton de connexion de la montre :
 
 ```bash
-python scripts/envoi_maree.py data/saint_malo_3482_shom.bin
+python scripts/envoi_maree.py data/saint_malo_3482.bin
 ```
 
-La montre doit afficher « ST-MALO SHOM » en mode marée. Utilisez `data/saint_malo_3482.bin` pour la version calée sur les mesures plutôt que sur l'annuaire. Le script met aussi la montre à l'heure de l'ordinateur.
+La montre doit afficher « ST-MALO SHOM » en mode marée. Ce bloc est calé sur les mesures du marégraphe. Pour coller plutôt à votre annuaire officiel, voir [Coller à son annuaire officiel](#coller-à-son-annuaire-officiel). Le script met aussi la montre à l'heure de l'ordinateur.
 
 Pour lire seulement les réglages de marée, sans rien écrire :
 
@@ -177,7 +181,6 @@ python scripts/telecharger_refmar.py 410 2019 2025 data/saint_malo_horaire.csv
 python scripts/analyse.py
 python scripts/constantes_casio.py
 python scripts/gen_blob.py
-python scripts/aligne_shom.py
 python scripts/previsions.py 2026-10-03
 ```
 
@@ -186,11 +189,32 @@ Les étapes :
 - `analyse.py` fait l'analyse harmonique et la compare au modèle Casio.
 - `constantes_casio.py` produit les constantes au format Casio. Il accepte le nom, la latitude et la longitude en arguments.
 - `gen_blob.py` produit le bloc de 1009 octets. Le nom affiché fait 18 caractères au maximum.
-- `aligne_shom.py` est optionnel : il applique le décalage vers l'annuaire et vérifie le résultat.
 - `previsions.py` affiche les PM/BM prévues pour comparer avec la montre.
+- `calage_extremes.py` recale les constantes sur des PM/BM officielles (voir [Coller à son annuaire officiel](#coller-à-son-annuaire-officiel)).
 - `figure_ecart.py` produit le graphique de comparaison Casio / mesures / nos constantes.
 
 Bonus : `parse_pklg.py` décode une capture Bluetooth PacketLogger (macOS/iOS) en liste d'opérations GATT.
+
+### Coller à son annuaire officiel
+
+Des constantes calées sur les **mesures** d'un marégraphe suivent l'eau réelle. Votre **annuaire officiel** (SHOM, NOAA, UKHO, CHS...) est calculé par l'organisme hydrographique avec son propre modèle, plus complet, et peut différer de quelques minutes, différemment en vives-eaux et en mortes-eaux. Si vous voulez que la montre affiche les mêmes heures que l'annuaire avec lequel vous naviguez, calez-la dessus :
+
+1. **Récupérez les PM et BM officielles** de votre port sur une période aussi longue que possible : au moins quelques mois, idéalement un an. Enregistrez-les dans un CSV avec les colonnes `t` (date et heure, telles qu'imprimées dans l'annuaire), `type` (`HW` ou `LW`) et `h` (hauteur en mètres, même zéro que vos constantes). Vérifiez les conditions d'utilisation de l'annuaire : beaucoup sont libres de consultation mais pas de republication, gardez ce fichier pour vous.
+2. **Lancez le calage**, en choisissant une date qui partage les données : les marées avant servent au calage, celles après seulement à vérifier le résultat.
+   ```bash
+   python scripts/calage_extremes.py data/mon_port.json mon_annuaire.csv data/mon_port_cale.json 48.64 Europe/Paris 2026-08-01
+   ```
+   (constantes de départ, annuaire, sortie, latitude, fuseau des heures de l'annuaire, date de partage)
+3. **Lisez le rapport de validation.** Le script compare les constantes de départ et plusieurs versions recalées sur les marées mises de côté, avec le biais en vives-eaux et en mortes-eaux présenté séparément, et retient la meilleure. Ensuite seulement, il recale sur toutes les données.
+4. Continuez comme d'habitude avec `constantes_casio.py`, `gen_blob.py` et `envoi_maree.py`, à partir du JSON recalé.
+
+Le principe : à l'heure exacte d'une PM ou BM officielle, la courbe prédite doit être à plat et à la hauteur officielle. La courbe étant une somme d'ondes, ces deux conditions sont linéaires en fonction des constantes : c'est un simple problème de moindres carrés. Une pénalité retient la solution près des constantes de départ, pour éviter le sur-apprentissage ; sa force est choisie sur les marées de validation.
+
+Deux règles apprises à nos dépens :
+- **Ne jamais valider sur les données qui ont servi au calage**, et ne jamais juger sur quelques jours : à Saint-Malo, l'écart entre l'annuaire et les mesures va d'environ 13 min en mortes-eaux à presque 0 en vives-eaux.
+- **Présenter vives-eaux et mortes-eaux séparément.** Une moyenne peut masquer une grosse erreur sur l'une des deux.
+
+À Saint-Malo, le calage sur 9,5 mois d'annuaire (janvier à mi-octobre 2026) a fait passer l'écart avec l'annuaire, sur des mois non utilisés, de 4,8 à 3,4 min en moyenne (max 22 → 14 min) et de 8,8 à 3,9 cm en hauteur, sans plus aucun biais en vives-eaux. Un petit biais d'environ 4 min subsiste en mortes-eaux : la courbe est très plate autour des PM et BM de mortes-eaux, si bien qu'une infime différence de forme déplace la minute exacte de l'extremum.
 
 ## Limites et précautions
 

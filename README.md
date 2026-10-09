@@ -2,7 +2,7 @@
 
 *Accurate, offline tide predictions on the GBX-100 (module 3482) from official tide-gauge data, uploaded over Bluetooth LE. — [Version française](README.fr.md)*
 
-The GBX-100 has a nice tide graph, but for many ports the data that the **CASIO WATCHES** app sends is crude, and high/low water times can be off by more than an hour. This project computes **proper harmonic tide constants** from official measurements and uploads them to the watch in Casio's own format. The watch then shows tides accurate to about a minute, **fully offline**, on its stock screen (tide graph, high/low water, moon, sunrise/sunset). The firmware is not modified.
+The GBX-100 has a nice tide graph, but for many ports the data that the **CASIO WATCHES** app sends is crude, and high/low water times can be off by more than an hour. This project computes **proper harmonic tide constants** from official measurements and uploads them to the watch in Casio's own format. The watch then shows tides accurate to a few minutes, **fully offline**, on its stock screen (tide graph, high/low water, moon, sunrise/sunset). The firmware is not modified.
 
 Our test case is **Saint-Malo, France**, with data from the French hydrographic office **SHOM**, uploaded as a **custom port** named "ST-MALO SHOM". You can create your own port for any location, with any name ([how](#create-your-own-custom-port-any-location-any-name)). The method works with any tide gauge or published constituents (see [other data sources](#other-data-sources-noaa-ukho-and-more)).
 
@@ -20,11 +20,11 @@ Our test case is **Saint-Malo, France**, with data from the French hydrographic 
 
 <p align="center"><em>Two days later (5 Oct 2026), after the watch reconnected to the phone, the data is still there. Low water 9:09 (491 cm) and high water 15:08 (904 cm), vs 09:06 (4.90 m) and 15:10 (9.08 m) in the SHOM table.</em></p>
 
-| Saint-Malo (vs gauge measurements, 2025) | Mean error on high/low water time | Max error |
+| Saint-Malo, error on high/low water times | Mean | Max |
 |---|---|---|
-| Casio's stock data (4 constituents) | 29 min | 2 h 05 |
-| Our constants (60 constituents, SHOM gauge data) | 5 min | 24 min |
-| Version aligned on the official SHOM table: watch vs table, 3 Oct 2026 | ≤ 1 min | — |
+| Casio's stock data (4 constituents), vs tide-gauge measurements (2025) | 29 min | 2 h 05 |
+| Our constants (60 constituents, fitted on gauge data), vs measurements (2025) | 5 min | 24 min |
+| Our constants calibrated on the official tide table, vs the table (Aug–Oct 2026, 309 tides not used for calibration) | 3.4 min | 14 min |
 
 ## Why Casio's stock data is not usable (at least in Saint-Malo)
 
@@ -67,6 +67,8 @@ We worked through successive hypotheses, each checked against an independent sou
 
 **6. Debug failures.** When the watch started rejecting transfers ("busy"), a second capture showed the full handshake that the app performs before each transfer. The script now replays it.
 
+**7. Match the official tide table, and learn from a mistake.** Our first attempt shifted all constants by a fixed 12 minutes, calibrated on **three days of neap tides**. It matched those days to the minute, but five days later, at springs, the watch was 13 to 21 minutes early. The gap between the official table and the gauge-fitted model is not constant: about 13 min at neaps, close to 0 at springs. A fixed offset cannot fix that. We replaced it with a proper calibration on 9.5 months of official high/low waters, validated on months it never saw, with springs and neaps reported separately (see [Match your official tide table](#match-your-official-tide-table)).
+
 ### Hypotheses confirmed or refuted
 
 | Hypothesis | Result | Evidence |
@@ -80,7 +82,9 @@ We worked through successive hypotheses, each checked against an independent sou
 | A third-party client can write to the watch without pairing | ✅ Confirmed | Successful connection and upload from a Mac |
 | The watch reloads data on every upload | ❌ Refuted | It only reloads when the port ID changes |
 | The watch accepts a transfer at any time | ❌ Refuted | It refuses while showing tide mode, and without the app's handshake |
-| The official tide table exactly matches the measurements | ❌ Refuted (at Saint-Malo) | The table is ~12 min earlier than our model; the measured tide lies in between |
+| The official tide table exactly matches the measurements | ❌ Refuted (at Saint-Malo) | The gap depends on the tide: ~13 min at neaps, ~0 at springs |
+| A fixed time shift is enough to match the official table | ❌ Refuted | Calibrated on 3 neap days, it put the watch 13–21 min early at springs |
+| Calibrating on a long series of official high/low waters works | ✅ Confirmed | 3.4 min mean error on held-out months, no spring bias left |
 
 The full protocol is documented in [docs/PROTOCOL.md](docs/PROTOCOL.md) (French version: [docs/PROTOCOLE.md](docs/PROTOCOLE.md)).
 
@@ -113,7 +117,7 @@ Whatever the source, check that:
 - phases are **Greenwich/UTC-referenced** (not local time) and amplitudes are in **cm**;
 - constituent names are mapped to Casio's order (done in `constantes_casio.py`);
 - the height datum (local chart datum or mean sea level) suits you, since it sets the displayed heights;
-- if you want to match your official local tide table rather than the measurements, you calibrate a time offset as in `aligne_shom.py`.
+- if you want to match your official local tide table rather than the measurements, calibrate on its high/low waters (see [Match your official tide table](#match-your-official-tide-table)), not with a fixed time offset.
 
 ## Usage
 
@@ -133,10 +137,10 @@ Run all commands from the repository root.
 3. Run the command, then press the watch's connect button:
 
 ```bash
-python scripts/envoi_maree.py data/saint_malo_3482_shom.bin
+python scripts/envoi_maree.py data/saint_malo_3482.bin
 ```
 
-The watch should then show "ST-MALO SHOM" in tide mode. Use `data/saint_malo_3482.bin` for the version fitted on measurements rather than on the official table. The script also sets the watch time from the computer.
+The watch should then show "ST-MALO SHOM" in tide mode. This block is fitted on tide-gauge measurements. To match your official tide table instead, see [Match your official tide table](#match-your-official-tide-table). The script also sets the watch time from the computer.
 
 To read the tide settings only, without writing anything:
 
@@ -179,7 +183,6 @@ python scripts/telecharger_refmar.py 410 2019 2025 data/saint_malo_horaire.csv
 python scripts/analyse.py
 python scripts/constantes_casio.py
 python scripts/gen_blob.py
-python scripts/aligne_shom.py
 python scripts/previsions.py 2026-10-03
 ```
 
@@ -188,11 +191,32 @@ What each step does:
 - `analyse.py` runs the harmonic analysis and compares it with Casio's model.
 - `constantes_casio.py` writes the constants in Casio's format. Name, latitude and longitude can be passed as arguments.
 - `gen_blob.py` builds the 1,009-byte block. The displayed name is at most 18 characters.
-- `aligne_shom.py` is optional: it applies the time offset towards the official table and checks the result.
 - `previsions.py` prints predicted high/low waters, to compare with the watch.
+- `calage_extremes.py` calibrates the constants on official high/low waters (see [Match your official tide table](#match-your-official-tide-table)).
 - `figure_ecart.py` draws the Casio vs measurements vs our constants comparison chart.
 
 Bonus: `parse_pklg.py` decodes a PacketLogger (macOS/iOS) Bluetooth capture into a list of GATT operations.
+
+### Match your official tide table
+
+Constants fitted on tide-gauge **measurements** follow the real water. Your **official tide table** (SHOM, NOAA, UKHO, CHS...) is computed by the hydrographic office with its own, larger model, and can differ by a few minutes, differently at springs and neaps. If you want the watch to agree with the table you sail with, calibrate on it:
+
+1. **Collect the official high and low waters** for your port over as long a period as possible, at least a few months, ideally a year. Save them as a CSV with columns `t` (date and time, as printed in the table), `type` (`HW` or `LW`) and `h` (height in metres, same datum as your constants). Check the table's terms of use: many are free to consult but not to republish, so keep that file to yourself.
+2. **Run the calibration**, choosing a date that splits the data: tides before it are used to calibrate, tides after it only to check the result.
+   ```bash
+   python scripts/calage_extremes.py data/my_port.json my_table.csv data/my_port_calibrated.json 48.64 Europe/Paris 2026-08-01
+   ```
+   (constants to start from, your table, output, latitude, time zone of the table's times, split date)
+3. **Read the validation report.** The script compares the starting constants and several calibrated versions on the held-out tides, with the bias at springs and at neaps shown separately, and keeps the best one. Only then does it refit on all the data.
+4. Continue as usual with `constantes_casio.py`, `gen_blob.py` and `envoi_maree.py`, using the calibrated JSON.
+
+How it works: at the exact time of an official high or low water, the predicted curve must be flat and at the official height. Since the curve is a sum of tidal waves, both conditions are linear in the constants, so this is a plain least-squares problem. A penalty keeps the solution close to the starting constants, which prevents over-fitting; its strength is chosen on the validation tides.
+
+Two rules we learned the hard way:
+- **Never validate on the data used for calibration**, and never judge on a few days: at Saint-Malo, the gap between the table and the measurements varies from ~13 min at neaps to ~0 at springs.
+- **Report springs and neaps separately.** An average can hide a large error on one of them.
+
+At Saint-Malo, calibrating on 9.5 months of official tables (January to mid-October 2026) brought the error against the table, on held-out months, from 4.8 to 3.4 min on average (max 22 → 14 min) and from 8.8 to 3.9 cm in height, with no bias left at springs. A small bias of about 4 min remains at neaps: the curve is very flat around neap high and low waters, so a tiny difference in shape moves the exact minute of the extremum.
 
 ## Limitations and caveats
 

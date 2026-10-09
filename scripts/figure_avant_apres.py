@@ -29,8 +29,8 @@ obs = pd.Series({pd.Timestamp(r['timestamp']): r['value'] for r in d}).sort_inde
 pc = utide.reconstruct(day, casio, verbose=False).h
 
 fig = plt.figure(figsize=(16, 9), dpi=110, facecolor='white')
-fig.text(.5, .94, "My G-Shock's tide times were up to 2 hours off. Now they're within a minute.",
-         ha='center', fontsize=25, weight='bold', color=INK)
+fig.text(.5, .94, "My G-Shock's tide times were up to 2 hours off. Now they're within a few minutes.",
+         ha='center', fontsize=22.5, weight='bold', color=INK)
 fig.text(.5, .895, 'Casio GBX-100 · Saint-Malo, France (12 m tidal range) · checked against the official SHOM tide gauge',
          ha='center', fontsize=13.5, color='#616161')
 
@@ -58,13 +58,13 @@ fig.text(.27, .12, '(607 tides, Jan–Jun 2025, vs tide-gauge measurements)', ha
 
 # --- APRÈS ---
 fig.text(.73, .82, 'AFTER', ha='center', fontsize=20, weight='bold', color=BLUE)
-fig.text(.73, .785, '60 components fitted on 7 years of tide-gauge data', ha='center', fontsize=13.5, color=INK)
+fig.text(.73, .785, '60 components, calibrated on the official tide table', ha='center', fontsize=13.5, color=INK)
 img = Image.open('docs/img/montre_maree.jpg')
 w, h = img.size; img = img.crop((int(w * .12), int(h * .30), int(w * .88), int(h * .80)))   # cadrage sur le cadran
 axi = fig.add_axes([.555, .25, .35, .52]); axi.imshow(img); axi.axis('off')
-fig.text(.73, .19, '≤ 1 min', ha='center', fontsize=40, weight='bold', color=BLUE)
-fig.text(.73, .15, 'vs the official tide table, on the watch (19:01 vs 19:00, 0:39 vs 00:40)', ha='center', fontsize=13, color=INK)
-fig.text(.73, .12, '(5 min average vs tide-gauge measurements, Jan–Jun 2025)', ha='center', fontsize=10.5, color='#757575')
+fig.text(.73, .19, '3.4 min', ha='center', fontsize=40, weight='bold', color=BLUE)
+fig.text(.73, .15, 'average error vs the official tide table · max 14 min', ha='center', fontsize=13, color=INK)
+fig.text(.73, .12, '(309 tides, Aug–Oct 2026, not used for calibration)', ha='center', fontsize=10.5, color='#757575')
 
 fig.add_artist(plt.Line2D([.5, .5], [.12, .82], color='#e0e0e0', lw=1.5))
 fig.patches.append(matplotlib.patches.Rectangle((0, 0), 1, .075, transform=fig.transFigure, color=INK, zorder=-1))
