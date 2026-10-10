@@ -83,6 +83,7 @@ Nous avons procédé par hypothèses successives, chacune vérifiée par une sou
 | L'annuaire officiel colle exactement aux mesures | ❌ Réfutée (à Saint-Malo) | L'écart dépend de la marée : ~13 min en mortes-eaux, ~0 en vives-eaux |
 | Un décalage horaire fixe suffit pour coller à l'annuaire | ❌ Réfutée | Calé sur 3 jours de mortes-eaux, il mettait la montre 13 à 21 min en avance en vives-eaux |
 | Un calage sur une longue série de PM/BM officielles fonctionne | ✅ Validée | 3,4 min d'écart moyen sur des mois non utilisés, plus de biais en vives-eaux |
+| Caler sur les hauteurs horaires officielles (toute la courbe) fait encore mieux | ❌ Réfutée (avec 7 mois de données) | 4,5 min au mieux sur les mêmes marées de validation, contre 3,4 min pour le calage sur les PM/BM |
 
 Le détail du protocole est dans [docs/PROTOCOLE.md](docs/PROTOCOLE.md).
 
@@ -209,6 +210,12 @@ Des constantes calées sur les **mesures** d'un marégraphe suivent l'eau réell
 4. Continuez comme d'habitude avec `constantes_casio.py`, `gen_blob.py` et `envoi_maree.py`, à partir du JSON recalé.
 
 Le principe : à l'heure exacte d'une PM ou BM officielle, la courbe prédite doit être à plat et à la hauteur officielle. La courbe étant une somme d'ondes, ces deux conditions sont linéaires en fonction des constantes : c'est un simple problème de moindres carrés. Une pénalité retient la solution près des constantes de départ, pour éviter le sur-apprentissage ; sa force est choisie sur les marées de validation.
+
+**Pourquoi caler sur les PM/BM plutôt que sur la courbe horaire ?** Nous avons aussi essayé de caler les 60 ondes sur les **hauteurs horaires** officielles (7 mois, janvier à juillet 2026), seules ou combinées aux PM/BM, avec validation sur les mêmes marées mises de côté. Le résultat est moins bon : 4,5 min au mieux contre 3,4 min, et jusqu'à 43 min sans forte pénalité. Deux raisons :
+- séparer des ondes proches (S2/T2/R2, K1/P1, ondes annuelles) demande au moins un an de données, idéalement plusieurs ; avec 7 mois, le calcul les confond et dérape hors de la période de calage, sauf à le retenir si près des constantes de départ qu'il n'apporte presque rien ;
+- la montre n'a que 60 ondes et ne peut pas reproduire exactement la courbe officielle. Caler toute la courbe répartit l'erreur sur toutes les heures, y compris à mi-marée, où l'eau monte ou descend jusqu'à 3 m par heure à Saint-Malo ; caler sur les PM/BM concentre l'effort là où ça compte.
+
+Avec plusieurs années de hauteurs horaires officielles, la méthode par la courbe pourrait devenir compétitive, mais la limite des 60 ondes plafonne le gain.
 
 Deux règles apprises à nos dépens :
 - **Ne jamais valider sur les données qui ont servi au calage**, et ne jamais juger sur quelques jours : à Saint-Malo, l'écart entre l'annuaire et les mesures va d'environ 13 min en mortes-eaux à presque 0 en vives-eaux.

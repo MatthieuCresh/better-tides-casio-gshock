@@ -85,6 +85,7 @@ We worked through successive hypotheses, each checked against an independent sou
 | The official tide table exactly matches the measurements | ❌ Refuted (at Saint-Malo) | The gap depends on the tide: ~13 min at neaps, ~0 at springs |
 | A fixed time shift is enough to match the official table | ❌ Refuted | Calibrated on 3 neap days, it put the watch 13–21 min early at springs |
 | Calibrating on a long series of official high/low waters works | ✅ Confirmed | 3.4 min mean error on held-out months, no spring bias left |
+| Fitting the official hourly water levels (whole curve) works even better | ❌ Refuted (with 7 months of data) | 4.5 min at best on the same held-out tides, vs 3.4 min for high/low-water calibration |
 
 The full protocol is documented in [docs/PROTOCOL.md](docs/PROTOCOL.md) (French version: [docs/PROTOCOLE.md](docs/PROTOCOLE.md)).
 
@@ -211,6 +212,12 @@ Constants fitted on tide-gauge **measurements** follow the real water. Your **of
 4. Continue as usual with `constantes_casio.py`, `gen_blob.py` and `envoi_maree.py`, using the calibrated JSON.
 
 How it works: at the exact time of an official high or low water, the predicted curve must be flat and at the official height. Since the curve is a sum of tidal waves, both conditions are linear in the constants, so this is a plain least-squares problem. A penalty keeps the solution close to the starting constants, which prevents over-fitting; its strength is chosen on the validation tides.
+
+**Why calibrate on high/low waters rather than on the hourly curve?** We also tried fitting the 60 constituents on the official **hourly** water levels (7 months, January to July 2026), alone or combined with the high/low waters, and validated on the same held-out tides. It did worse: 4.5 min at best vs 3.4 min, and up to 43 min without a strong penalty. Two reasons:
+- separating close constituents (S2/T2/R2, K1/P1, annual terms) needs at least a year of data, ideally several; with 7 months the fit confuses them and drifts outside the calibration period, unless it is held so close to the starting constants that it gains little;
+- the watch only has 60 constituents and cannot reproduce the official curve exactly. Fitting the whole curve spreads the error over every hour, including mid-tide, where at Saint-Malo the water moves up to 3 m per hour; calibrating on high/low waters puts the effort where it matters.
+
+With several years of official hourly levels, the curve-fitting approach could become competitive, but the 60-constituent limit caps the gain.
 
 Two rules we learned the hard way:
 - **Never validate on the data used for calibration**, and never judge on a few days: at Saint-Malo, the gap between the table and the measurements varies from ~13 min at neaps to ~0 at springs.
