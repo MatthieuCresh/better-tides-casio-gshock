@@ -2,7 +2,8 @@
 Format décrit dans docs/PROTOCOLE.md, vérifié octet par octet sur une capture Bluetooth de l'appli officielle.
 Usage : python scripts/gen_blob.py [constantes.csv] [sortie.bin] [nom affiché] [fuseau_heures] [regle_heure_ete]
   fuseau : décalage UTC en heures, hors heure d'été (France : 1 ; Vancouver : -8)
-  règle d'heure d'été : 2 = Union européenne (confirmé) ; autres régions : code inconnu à ce jour"""
+  règle d'heure d'été : 2 = Union européenne (capture de l'appli, port français), 1 = Amérique du Nord
+  (capture de l'appli par un utilisateur, port canadien) ; autres régions : faire une capture"""
 import csv, struct, sys
 
 def make_blob(name, lat, lon_east, z0_cm, graph, amps_cm, phases_deg, tz_min=60, dst_diff_min=60, dst_rule=2, hct=7):
