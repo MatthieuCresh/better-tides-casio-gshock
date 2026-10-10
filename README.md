@@ -174,7 +174,8 @@ python scripts/lecture_montre.py
 
 Notes:
 - **Name:** up to 18 bytes. Only uppercase letters, digits, spaces and hyphens have been tested ("ST-MALO SHOM"). Lowercase and accented characters are untested.
-- **Time zone:** pass your standard UTC offset (in hours, without DST) and a DST rule code as 4th and 5th arguments of `gen_blob.py`, e.g. `... "MY PORT" -8 2`. Default: UTC+1 with rule 2 = EU daylight saving time (France), the only code confirmed so far. Codes for other regions (North America, etc.) are not known yet; capturing the official app while it sends a port in your zone (see `parse_pklg.py`) will reveal them.
+- **Time zone:** pass your standard UTC offset (in hours, without DST) and a DST rule code as 4th and 5th arguments of `gen_blob.py`, e.g. `... "MY PORT" -8 1`. Known codes: **2 = EU** daylight saving time (France, from our capture) and **1 = North America** (found by a Reddit user capturing the app with a Canadian port). Default: UTC+1 with rule 2. For other regions, capture the official app while it sends a port in your zone (see `parse_pklg.py`) and read byte 37 of the block. Note: the time zone is set by these arguments only; editing the `TimeDiff`, `Country` or `Area` columns of the CSV has no effect.
+- **Tide graph scale:** the "graph pattern" sets the vertical scale of the tide graph on the watch. The smaller its number, the larger the tidal range it is made for (2-3 ≈ 13 m like Saint-Malo, 8 ≈ 7-8 m, 11 ≈ 3-4 m, 13 ≈ 1 m). `constantes_casio.py` now picks it from your tidal range; you can force it as 6th argument, ideally with the value Casio uses for the nearest port (e.g. `8D` for Whaletown Bay). A Saint-Malo value on a small-range port gives a flat graph.
 - **One custom port at a time.** The watch has a single "APP" slot for full constants. Switching ports means re-uploading, which takes about a minute.
 
 ### Recompute the constants, or compute them for another port

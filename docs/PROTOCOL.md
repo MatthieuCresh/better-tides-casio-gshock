@@ -52,9 +52,9 @@ All numbers are little-endian.
 | 27 | 8 | Longitude, double, degrees, **West positive** |
 | 35 | 1 | Time zone in quarter hours (int8): 4 = UTC+1 |
 | 36 | 1 | DST offset in quarter hours: 4 = 1 h |
-| 37 | 1 | DST rule: **2 = European Union** |
+| 37 | 1 | DST rule: **2 = European Union**, **1 = North America** (reported by a user from a capture with a Canadian port) |
 | 38 | 8 | Z0 (mean level above chart datum), double, **cm** |
-| 46 | 2 | "Graph pattern" (uint16) ❓. Alphanumeric code where A–I map to 1–9: "2B" = 22, "7C" = 73 |
+| 46 | 2 | "Graph pattern" (uint16). Alphanumeric code where A–I map to 1–9: "2B" = 22, "7C" = 73. ℹ️ The number sets the vertical scale of the tide graph: it decreases as the tidal range increases (2-3 for ~13 m, 8 for ~7-8 m, 13 for ~1 m). Meaning of the letter unknown ❓ |
 | 48 | 480 | 60 amplitudes, doubles, **cm** |
 | 528 | 480 | 60 phases, doubles, **degrees, UTC (Greenwich) reference** |
 | 1008 | 1 | "HcT" ❓ (7 for French ports) |
@@ -93,6 +93,6 @@ The watch also refuses the transfer ("busy") while it is **displaying tide mode*
 
 ## 5. Open questions
 
-- Exact meaning of "graph pattern" and "HcT".
+- Meaning of the graph pattern letter and of "HcT".
 - Detailed format of the user points (units 3–5).
 - Behaviour of other modules (3586, 3452, 5623…).

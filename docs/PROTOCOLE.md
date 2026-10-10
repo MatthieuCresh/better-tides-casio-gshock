@@ -52,9 +52,9 @@ Tous les nombres sont en little-endian.
 | 27 | 8 | Longitude, double, degrés, **Ouest positif** |
 | 35 | 1 | Fuseau horaire en quarts d'heure (int8) : 4 = UTC+1 |
 | 36 | 1 | Décalage de l'heure d'été en quarts d'heure : 4 = 1 h |
-| 37 | 1 | Règle d'heure d'été : **2 = Union européenne** |
+| 37 | 1 | Règle d'heure d'été : **2 = Union européenne**, **1 = Amérique du Nord** (rapporté par un utilisateur, capture avec un port canadien) |
 | 38 | 8 | Z0 (niveau moyen au-dessus du zéro hydrographique), double, **cm** |
-| 46 | 2 | « Graph pattern » (uint16) ❓. Code alphanumérique où A–I valent 1–9 : « 2B » = 22, « 7C » = 73 |
+| 46 | 2 | « Graph pattern » (uint16). Code alphanumérique où A–I valent 1–9 : « 2B » = 22, « 7C » = 73. ℹ️ Le nombre règle l'échelle verticale du graphe de marée : il diminue quand le marnage augmente (2-3 pour ~13 m, 8 pour ~7-8 m, 13 pour ~1 m). Sens de la lettre inconnu ❓ |
 | 48 | 480 | 60 amplitudes, doubles, **cm** |
 | 528 | 480 | 60 phases, doubles, **degrés, référence UTC** (Greenwich) |
 | 1008 | 1 | « HcT » ❓ (7 pour les ports français) |
@@ -93,5 +93,5 @@ La montre refuse aussi le transfert (« occupée ») tant qu'elle **affiche le m
 
 ## 5. Points encore ouverts
 
-- Sens exact de « graph pattern » et de « HcT ».
+- Sens de la lettre du graph pattern et de « HcT ».
 - Format détaillé des points utilisateur (unités 3 à 5).
